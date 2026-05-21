@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "../components/layout/DashboardLayout";
 
 // Public Pages
-import LandingPage from "../features/landing/screen/LandingPage";
+// import LandingPage from "../features/landing/screen/LandingPage";
 import LoginPage from "../features/auth/page/LoginPage";
 
 // Admin / Core Pages
@@ -30,13 +30,13 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
         {/* --- Public Routes --- */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        {/* <Route path="/" element={<LandingPage />} /> */}
+        <Route path="/" element={<LoginPage />} />
 
         {/* --- Admin Protected Routes --- */}
         <Route path="/admin" element={<DashboardLayout />}>
           {/* Default Redirect: /admin -> /admin/dashboard */}
-          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route index element={<Navigate to="dashboard" replace />} />s
 
           {/* Core Management */}
           <Route path="dashboard" element={<DashboardPage />} />

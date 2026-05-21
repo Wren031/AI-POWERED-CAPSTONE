@@ -1,7 +1,7 @@
 import React from "react";
 import { 
   X, Stethoscope, ShieldAlert, Activity, Package, 
-  ClipboardList, Sparkles, Clock, ChevronRight, Info
+  ClipboardList, Sparkles, ChevronRight, Info
 } from "lucide-react";
 
 interface Props {

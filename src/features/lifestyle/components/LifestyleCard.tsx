@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Trash2, Tag, MoreVertical, Edit2, Calendar, ShieldCheck } from "lucide-react";
+import { Trash2, Tag, MoreVertical, Edit2, Calendar } from "lucide-react";
 import type { LifestyleTip } from "../types/Lifestyle";
 import type { CSSProperties } from "react";
 

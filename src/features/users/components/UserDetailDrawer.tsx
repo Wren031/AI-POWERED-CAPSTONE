@@ -5,7 +5,6 @@ import {
   Phone, 
   MapPin, 
   Calendar, 
-  User as UserIcon,
   Clock,
   ExternalLink,
   ShieldCheck

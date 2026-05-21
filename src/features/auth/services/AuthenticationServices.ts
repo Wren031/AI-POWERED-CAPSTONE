@@ -6,8 +6,8 @@ export const AuthenticationServices = {
       setTimeout(() => {
         resolve({
           username: "user",
-          email: "renie@aclcbukidnon.com",
-          password: "1",
+          email: "derma-admin@gmail.com",
+          password: "derma123",
         });
       }, 500);
     });
