@@ -1,0 +1,1 @@
+export type ProductStatus = "Available" | "Out of Stock" | "Discontinued";

@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Spin */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 🔥 Skeleton */
+.skeleton-row {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.skeleton-box {
+  height: 16px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e5e7eb 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+}
+.tooltip {
+  position: absolute;
+  left: 100%;
+  margin-left: 10px;
+  background: #111827;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(10px);
+  transition: all 0.2s ease;
+}
+
+a:hover .tooltip {
+  opacity: 1;
+  transform: translateX(0);
+}
+/* widths */
+.w-20 { width: 20%; }
+.w-40 { width: 40%; }
+.w-24 { width: 24%; }
+.w-16 { width: 16%; }
+
+/* shimmer animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* LIGHT MODE (default) */
+body {
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+/* DARK MODE */
+.dark body {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+/* Common surfaces */
+.card {
+  background: white;
+}
+
+.dark .card {
+  background: #1f2937;
+}
+
+/* Sidebar */
+.sidebar {
+  background: #ffffff;
+}
+
+.dark .sidebar {
+  background: #1f2937;
+}
+
+/* Header */
+.header {
+  background: rgba(255,255,255,0.9);
+}
+
+.dark .header {
+  background: rgba(17,24,39,0.9);
+}
