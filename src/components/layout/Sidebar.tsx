@@ -72,8 +72,8 @@ export default function Sidebar({ collapsed, setCollapsed, user, onLogout }: Sid
         icon: Fingerprint, 
         count: todayScanCount
     },
-    { to: "/admin/lifestyle", label: "Skin Education", icon: HeartPulse, section: "Resources" },
-    { to: "/admin/report", label: "Practice Insights", icon: FileText },
+    { to: "/admin/lifestyle", label: "Lifestyle Tips", icon: HeartPulse, section: "Resources" },
+    { to: "/admin/report", label: "Reports", icon: FileText },
     { to: "/admin/settings", label: "Clinic Settings", icon: Settings, section: "Admin" },
   ];
 

@@ -15,7 +15,10 @@ export type SkinConditionStats = {
 
 export type MonthlyStats = {
   name: string;
-  count: number;
+  scans: number;
+  users: number;
+  products: number;
+  conditions: number;
 };
 
 export type RecentScan = {
@@ -71,25 +74,61 @@ export const DashboardStatsService = {
     }
   },
 
-  async getMonthlyStats(): Promise<MonthlyStats[]> {
+async getYearlyStats(year: number = new Date().getFullYear()): Promise<MonthlyStats[]> {
     try {
-      const { data, error } = await supabase.from("tbl_users_skin_result").select("created_at");
-      if (error) throw error;
+      // Define the date range for the selected year
+      const startDate = `${year}-01-01T00:00:00Z`;
+      const endDate = `${year}-12-31T23:59:59Z`;
+
+      // 1. Fetch created_at with range filtering for performance
+      const [scans, users, products, conditions] = await Promise.all([
+        supabase.from("tbl_users_skin_result").select("created_at").gte("created_at", startDate).lte("created_at", endDate),
+        supabase.from("tbl_profiles").select("created_at").gte("created_at", startDate).lte("created_at", endDate),
+        supabase.from("tbl_products").select("created_at").gte("created_at", startDate).lte("created_at", endDate),
+        supabase.from("tbl_condition").select("created_at").gte("created_at", startDate).lte("created_at", endDate),
+      ]);
 
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const monthlyMap: Record<string, number> = {};
-
-      data?.forEach((item) => {
-        if (!item.created_at) return;
-        const monthLabel = monthNames[new Date(item.created_at).getMonth()];
-        monthlyMap[monthLabel] = (monthlyMap[monthLabel] || 0) + 1;
+      
+      // 2. Initialize map
+      const monthlyMap: Record<string, MonthlyStats> = {};
+      monthNames.forEach(month => {
+        monthlyMap[month] = { name: month, scans: 0, users: 0, products: 0, conditions: 0 };
       });
 
-      return monthNames.map((month) => ({ name: month, count: monthlyMap[month] || 0 }));
+      // 3. Aggregate helper
+      const aggregate = (data: any[] | null, key: keyof MonthlyStats) => {
+        data?.forEach((item) => {
+          if (!item.created_at) return;
+          const date = new Date(item.created_at);
+          // Safety check: ensure the item belongs to the year we are looking for
+          if (date.getFullYear() === year) {
+            const monthLabel = monthNames[date.getMonth()];
+            (monthlyMap[monthLabel][key] as number)++;
+          }
+        });
+      };
+
+      aggregate(scans.data, "scans");
+      aggregate(users.data, "users");
+      aggregate(products.data, "products");
+      aggregate(conditions.data, "conditions");
+
+      return monthNames.map((month) => monthlyMap[month]);
     } catch (error: any) {
-      console.error("Monthly stats error:", error.message);
+      console.error("Yearly stats error:", error.message);
       return [];
     }
+  },
+
+  // Helper to get the grand total for the specific year displayed
+  getTotalYearlyStats(data: MonthlyStats[]): TotalsResponse {
+    return data.reduce((acc, curr) => ({
+      scans: acc.scans + curr.scans,
+      users: acc.users + curr.users,
+      products: acc.products + curr.products,
+      conditions: acc.conditions + curr.conditions,
+    }), { scans: 0, users: 0, products: 0, conditions: 0 });
   },
 
 async getRecentLogin(): Promise<any[]> {
@@ -128,6 +167,8 @@ subscribeRecentLogin(callback: (payload: any) => void) {
     )
     .subscribe();
 },
+
+
 
   async getRecentScans(): Promise<RecentScan[]> {
     try {

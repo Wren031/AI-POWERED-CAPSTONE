@@ -208,7 +208,7 @@ export default function AddRecommendations({ initialData, onAdd, onCancel, isSav
             <label style={styles.label}>Contraindications & Warnings</label>
             <textarea
               disabled={isSaving}
-              style={{ ...styles.input, ...styles.textarea, height: 80, borderLeft: `4px solid ${theme.severe}`, background: '#FFF1F2' }}
+              style={{ ...styles.input, ...styles.textarea, height: 80, background: '#FFF1F2' }}
               placeholder="List precautions or lifestyle restrictions..."
               value={form.precautions}
               onChange={(e) => updateField("precautions", e.target.value)}

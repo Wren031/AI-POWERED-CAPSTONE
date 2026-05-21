@@ -9,6 +9,7 @@ import {
   Circle,
   FileText,
   Loader2,
+  Calendar,
 } from "lucide-react";
 
 import {
@@ -21,7 +22,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { useDashboardStats } from "../hooks/useDashboardStats";
 import { DashboardStatsService } from "../service/DashboardStatsService";
 import TitleSize from "../../../styles/TitleSize";
 import { supabase } from "../../../lib/supabase";
@@ -102,19 +102,24 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, growth, icon, color, 
 /* -------------------------------------------------------------------------- */
 
 export default function DashboardPage() {
-  const {
-    totalScans = 0,
-    totalUsers = 0,
-    totalProducts = 0,
-    totalConditions = 0,
-  } = useDashboardStats();
-
-  const [view, setView] = useState<"total" | "monthly">("monthly");
+  const [view, setView] = useState<"condition" | "yearly">("yearly");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [chartData, setChartData] = useState<any[]>([]);
   const [recentScans, setRecentScans] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFullyReady, setIsFullyReady] = useState(false);
   const [recentLogins, setRecentLogins] = useState<any[]>([]);
+
+  // Period-specific totals derived from chart data
+  const periodTotals = useMemo(() => {
+    if (view !== "yearly") return { scans: 0, users: 0, products: 0, conditions: 0 };
+    return chartData.reduce((acc, curr) => ({
+      scans: acc.scans + (curr.scans || 0),
+      users: acc.users + (curr.users || 0),
+      products: acc.products + (curr.products || 0),  
+      conditions: acc.conditions + (curr.conditions || 0),
+    }), { scans: 0, users: 0, products: 0, conditions: 0 });
+  }, [chartData, view]);
 
   useEffect(() => {
     let channel: any;
@@ -165,15 +170,14 @@ export default function DashboardPage() {
     if (showLoadingState) setIsLoading(true);
     try {
       const [analyticsData, scansData, loginData] = await Promise.all([
-        view === "monthly" ? DashboardStatsService.getMonthlyStats() : DashboardStatsService.getSkinConditionStats(),
+        view === "yearly" 
+          ? DashboardStatsService.getYearlyStats(selectedYear) 
+          : DashboardStatsService.getSkinConditionStats(),
         DashboardStatsService.getRecentScans(),
         DashboardStatsService.getRecentLogin(),
       ]);
-      const mappedData = analyticsData.map((item: any) => ({
-        ...item,
-        secondaryCount: Math.max(0, item.count * (0.6 + Math.random() * 0.4)),
-      }));
-      setChartData(mappedData);
+
+      setChartData(analyticsData);
       setRecentScans(scansData);
       setRecentLogins(loginData || []);
     } catch (error) {
@@ -182,7 +186,7 @@ export default function DashboardPage() {
       setIsLoading(false);
       if (!isFullyReady) setTimeout(() => setIsFullyReady(true), 600);
     }
-  }, [view, isFullyReady]);
+  }, [view, selectedYear, isFullyReady]);
 
   const getTimeAgo = (dateString: string) => {
     const diffMs = new Date().getTime() - new Date(dateString).getTime();
@@ -194,9 +198,9 @@ export default function DashboardPage() {
     return `${Math.floor(diffHours / 24)}d ago`;
   };
 
-  useEffect(() => { fetchData(true); }, [view, fetchData]);
+  useEffect(() => { fetchData(true); }, [view, selectedYear, fetchData]);
   useEffect(() => {
-    const intervalId = setInterval(() => fetchData(false), 10000);
+    const intervalId = setInterval(() => fetchData(false), 30000); // 30s refresh is safer for DB
     return () => clearInterval(intervalId);
   }, [fetchData]);
 
@@ -216,49 +220,16 @@ export default function DashboardPage() {
     <div style={styles.page}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        
         .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        
-        /* Grid Layouts */
-        .stats-grid { 
-          display: grid; 
-          gap: 20px; 
-          grid-template-columns: repeat(4, 1fr); 
-          margin-bottom: 24px; 
-        }
-        
-        .visual-grid { 
-          display: grid; 
-          gap: 24px; 
-          grid-template-columns: 2.3fr 1fr; 
-        }
-
-        .dashboard-header { 
-          display: flex; 
-          justify-content: space-between; 
-          align-items: center; 
-          margin-bottom: 32px; 
-          gap: 20px; 
-          flex-wrap: wrap; 
-        }
-
-        /* Responsive Breakpoints */
-        @media (max-width: 1100px) {
-          .visual-grid { grid-template-columns: 1fr; }
-        }
-
-        @media (max-width: 900px) {
-          .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        @media (max-width: 600px) {
+        .stats-grid { display: grid; gap: 20px; grid-template-columns: repeat(4, 1fr); margin-bottom: 24px; }
+        .visual-grid { display: grid; gap: 24px; grid-template-columns: 2.3fr 1fr; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; gap: 20px; flex-wrap: wrap; }
+        @media (max-width: 1100px) { .visual-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { 
           .stats-grid { grid-template-columns: 1fr; }
           .dashboard-header { flex-direction: column; align-items: flex-start; }
-          .system-card-container { width: 100%; }
-          .table-wrapper { overflow-x: auto; }
         }
-
-        /* Utils */
         @keyframes shimmer { 0% { background-position: -468px 0; } 100% { background-position: 468px 0; } }
         .shimmer { background: #f6f7f8; background-image: linear-gradient(to right, #f6f7f8 0%, #eefcfd 20%, #f6f7f8 40%, #f6f7f8 100%); background-repeat: no-repeat; background-size: 800px 100%; animation: shimmer 1.2s linear infinite forwards; }
         .glass-card { background: rgba(255,255,255,0.92); backdrop-filter: blur(18px); border: 1px solid #f1f5f9; box-shadow: 0 10px 40px rgba(15,23,42,0.03); border-radius: 24px; }
@@ -267,53 +238,74 @@ export default function DashboardPage() {
         table { width: 100%; border-collapse: collapse; min-width: 400px; }
         th { text-align: left; padding: 12px; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; }
         td { padding: 14px 12px; color: #0f172a; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+        select { border: none; background: #f1f5f9; padding: 4px 8px; borderRadius: 8px; font-weight: 700; color: #00A3AD; cursor: pointer; }
       `}</style>
 
       <div className="dashboard-container">
         <header className="dashboard-header">
-          <TitleSize title="Dashboard Overview" subtitle="System performance and diagnostic throughput." />
-          <div className="system-card-container" style={styles.systemCard}>
-            <div style={styles.systemPulse} />
-            <div>
-              <div style={styles.systemTitle}>AI Engine Status</div>
-              <div style={styles.systemSub}>Operational • 99.9% uptime</div>
+          <TitleSize title="Dashboard Overview" subtitle={`Analyzing data for ${view === 'yearly' ? selectedYear : 'all time'}`} />
+          
+          {view === "yearly" && (
+            <div style={styles.systemCard}>
+              <Calendar size={16} color={dermaTeal} />
+              <select 
+                value={selectedYear} 
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                style={{ background: 'transparent', border: 'none', fontWeight: 700, outline: 'none' }}
+              >
+                {[0, 1, 2].map(offset => {
+                  const y = new Date().getFullYear() - offset;
+                  return <option key={y} value={y}>{y}</option>
+                })}
+              </select>
             </div>
-          </div>
+          )}
         </header>
 
         <section className="stats-grid">
-          <StatCard loading={isLoading} label="Total Scans" value={totalScans.toLocaleString()} growth="+12%" color={dermaTeal} icon={<Activity size={20} />} />
-          <StatCard loading={isLoading} label="Total Users" value={totalUsers.toLocaleString()} growth="+5%" color="#ec4899" icon={<Users size={20} />} />
-          <StatCard loading={isLoading} label="Active Products" value={totalProducts.toLocaleString()} growth="+18%" color="#8b5cf6" icon={<Zap size={20} />} />
-          <StatCard loading={isLoading} label="Conditions" value={totalConditions.toLocaleString()} growth="+8%" color="#f59e0b" icon={<ShieldCheck size={20} />} />
+          <StatCard loading={isLoading} label={`${selectedYear} Scans`} value={periodTotals.scans.toLocaleString()} growth="+12%" color={dermaTeal} icon={<Activity size={20} />} />
+          <StatCard loading={isLoading} label={`${selectedYear} Users`} value={periodTotals.users.toLocaleString()} growth="+5%" color="#ec4899" icon={<Users size={20} />} />
+          <StatCard loading={isLoading} label={`${selectedYear} Products`} value={periodTotals.products.toLocaleString()} growth="+18%" color="#8b5cf6" icon={<Zap size={20} />} />
+          <StatCard loading={isLoading} label={`${selectedYear} Conditions`} value={periodTotals.conditions.toLocaleString()} growth="+8%" color="#f59e0b" icon={<ShieldCheck size={20} />} />
         </section>
 
         <div className="visual-grid">
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <div className="glass-card" style={styles.chartCard}>
               <div style={styles.chartHeader}>
-                <h3 style={styles.cardTitle}>{view === "monthly" ? "Scan Volume" : "Condition Data"}</h3>
+                <h3 style={styles.cardTitle}>{view === "yearly" ? `Activity in ${selectedYear}` : "Condition Distribution"}</h3>
                 <div style={styles.segmented}>
-                  <button onClick={() => setView("monthly")} style={{...styles.segmentBtn, ...(view === "monthly" ? styles.segmentBtnActive : {})}}>Monthly</button>
-                  <button onClick={() => setView("total")} style={{...styles.segmentBtn, ...(view === "total" ? styles.segmentBtnActive : {})}}>Total</button>
+                  <button onClick={() => setView("yearly")} style={{...styles.segmentBtn, ...(view === "yearly" ? styles.segmentBtnActive : {})}}>Yearly</button>
+                  <button onClick={() => setView("condition")} style={{...styles.segmentBtn, ...(view === "condition" ? styles.segmentBtnActive : {})}}>By Condition</button>
                 </div>
               </div>
-              <div style={{ width: "100%", height: "250px" }}>
+              <div style={{ width: "100%", height: "300px" }}>
                 {isLoading ? (
                   <div style={styles.loadingContainer}><Loader2 className="animate-spin" color={dermaTeal} /></div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
-                        <linearGradient id="cyanGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={dermaTeal} stopOpacity={0.4}/><stop offset="95%" stopColor={dermaTeal} stopOpacity={0}/></linearGradient>
-                        <linearGradient id="pinkGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f472b6" stopOpacity={0.2}/><stop offset="95%" stopColor="#f472b6" stopOpacity={0}/></linearGradient>
+                        <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={dermaTeal} stopOpacity={0.3}/><stop offset="95%" stopColor={dermaTeal} stopOpacity={0}/></linearGradient>
+                        <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ec4899" stopOpacity={0.2}/><stop offset="95%" stopColor="#ec4899" stopOpacity={0}/></linearGradient>
+                        <linearGradient id="colorProducts" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2}/><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/></linearGradient>
+                        <linearGradient id="colorConditions" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/><stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/></linearGradient>
                       </defs>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Area type="monotone" dataKey="secondaryCount" stroke="#f472b6" strokeWidth={3} fill="url(#pinkGradient)" />
-                      <Area type="monotone" dataKey="count" stroke={dermaTeal} strokeWidth={3} fill="url(#cyanGradient)" />
+                      
+                      {view === "yearly" ? (
+                        <>
+                          <Area name="Scans" type="monotone" dataKey="scans" stroke={dermaTeal} strokeWidth={3} fill="url(#colorScans)" />
+                          <Area name="Users" type="monotone" dataKey="users" stroke="#ec4899" strokeWidth={2} fill="url(#colorUsers)" />
+                          <Area name="Products" type="monotone" dataKey="products" stroke="#8b5cf6" strokeWidth={2} fill="url(#colorProducts)" />
+                          <Area name="Conditions" type="monotone" dataKey="conditions" stroke="#f59e0b" strokeWidth={2} fill="url(#colorConditions)" />
+                        </>
+                      ) : (
+                        <Area name="Incidents" type="monotone" dataKey="count" stroke={dermaTeal} strokeWidth={3} fill="url(#colorScans)" />
+                      )}
                     </AreaChart>
                   </ResponsiveContainer>
                 )}
@@ -383,12 +375,9 @@ export default function DashboardPage() {
 }
 
 const styles: Record<string, CSSProperties> = {
-  page: { minHeight: '100vh', background: '#f8fafc' },
+  page: { minHeight: '100vh', background: 'transparent' },
   fullLoaderArea: { height: "70vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" },
   systemCard: { display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", borderRadius: "12px", background: "#fff", border: "1px solid #f1f5f9" },
-  systemPulse: { width: "8px", height: "8px", borderRadius: "50%", background: dermaTeal, boxShadow: `0 0 0 4px rgba(0, 163, 173, 0.1)` },
-  systemTitle: { fontSize: "12px", fontWeight: 700, color: dermaSlate },
-  systemSub: { fontSize: "11px", color: "#94a3b8" },
   statCard: { padding: "20px" },
   statCardTop: { display: "flex", justifyContent: "space-between", alignItems: "center" },
   iconWrapper: { width: "38px", height: "38px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" },

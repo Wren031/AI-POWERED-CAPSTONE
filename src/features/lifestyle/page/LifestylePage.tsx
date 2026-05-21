@@ -74,7 +74,7 @@ export default function LifestylePage() {
       {/* Header Section */}
       <header style={styles.header}>
         <div>
-          <h1 style={styles.title}>Wellness Protocols</h1>
+          <h1 style={styles.title}>Manage Lifestyle Tips  </h1>
           <p style={styles.subtitle}>Curate daily skin health guidance and lifestyle tips for users.</p>
         </div>
         
@@ -84,7 +84,7 @@ export default function LifestylePage() {
           className="brand-interactive-btn"
         >
           <Plus size={18} strokeWidth={3} /> 
-          <span>New Protocol</span>
+          <span>Add LifeStyle Tips</span>
         </button>
       </header>
 

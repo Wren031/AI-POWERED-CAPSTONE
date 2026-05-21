@@ -147,9 +147,9 @@ const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({ isOpen, onClose, us
           <button className="print-btn" style={styles.secondaryBtn} onClick={() => window.print()}>
             <Printer size={16} /> Print File
           </button>
-          <button className="report-btn" style={styles.primaryBtn}>
+          {/* <button className="report-btn" style={styles.primaryBtn}>
             <ExternalLink size={16} /> Full Analytics
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
