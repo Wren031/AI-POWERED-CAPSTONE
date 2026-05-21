@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { CSSProperties } from "react";
-import { Lock, Mail, ChevronRight, ShieldCheck } from "lucide-react";
+import { Lock, Mail, ChevronRight, ShieldCheck, CheckCircle2 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 
 // DermaAI Design Tokens
 const theme = {
   accent: "#00A3AD",      // DermaAI Teal
+  accentLight: "#F0FDFA", // Soft Teal BG
+  success: "#10B981",     // Professional Green
   navy: "#0F172A",        // DermaAI Deep Navy
   slate: "#64748B",       // Slate for body text
   bgSoft: "#F8FAFC",      // Light background
@@ -22,11 +24,19 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await login(email, password);
-    if (success) navigate("/admin/dashboard");
+    
+    if (success) {
+      setLoginSuccess(true);
+      // Brief pause for professional feedback before redirect
+      setTimeout(() => {
+        navigate("/admin/dashboard");
+      }, 1500);
+    }
   };
 
   return (
@@ -62,6 +72,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading || loginSuccess}
               />
             </div>
           </div>
@@ -77,6 +88,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading || loginSuccess}
               />
               <button
                 type="button"
@@ -104,7 +116,16 @@ export default function LoginPage() {
             </a>
           </div>
 
-          {error && (
+          {/* Success Notification */}
+          {loginSuccess && (
+            <div style={styles.successBox}>
+              <CheckCircle2 size={16} />
+              <span>Authentication successful. Redirecting...</span>
+            </div>
+          )}
+
+          {/* Error Notification */}
+          {error && !loginSuccess && (
             <div style={styles.errorBox}>
                {error}
             </div>
@@ -113,11 +134,15 @@ export default function LoginPage() {
           <button 
             type="submit" 
             className="login-btn" 
-            style={{...styles.loginButton, opacity: isLoading ? 0.7 : 1}} 
-            disabled={isLoading}
+            style={{
+              ...styles.loginButton, 
+              opacity: (isLoading || loginSuccess) ? 0.7 : 1,
+              backgroundColor: loginSuccess ? theme.success : theme.navy
+            }} 
+            disabled={isLoading || loginSuccess}
           >
-            {isLoading ? "Authenticating..." : "Authorize Login"}
-            <ChevronRight size={18} />
+            {loginSuccess ? "Access Granted" : isLoading ? "Verifying..." : "Authorize Login"}
+            {!loginSuccess && <ChevronRight size={18} />}
           </button>
         </form>
 
@@ -158,7 +183,7 @@ const styles: Record<string, CSSProperties> = {
     display: "inline-flex",
     alignItems: "center",
     gap: "8px",
-    backgroundColor: "#F0FDFA",
+    backgroundColor: theme.accentLight,
     padding: "6px 12px",
     borderRadius: "10px",
     fontSize: "10px",
@@ -216,7 +241,6 @@ const styles: Record<string, CSSProperties> = {
     alignItems: "center",
     gap: "10px",
     padding: "16px",
-    backgroundColor: theme.navy,
     color: "#fff",
     border: "none",
     borderRadius: "16px",
@@ -224,8 +248,21 @@ const styles: Record<string, CSSProperties> = {
     fontSize: "15px",
     cursor: "pointer",
     marginTop: "12px",
-    transition: "all 0.3s ease",
+    transition: "all 0.4s ease",
     boxShadow: "0 10px 20px -5px rgba(15, 23, 42, 0.3)",
+  },
+  successBox: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    padding: "12px",
+    borderRadius: "12px",
+    backgroundColor: "#ECFDF5",
+    border: "1px solid #A7F3D0",
+    color: "#059669",
+    fontSize: "13px",
+    fontWeight: 600,
   },
   errorBox: { 
     padding: "12px", 
