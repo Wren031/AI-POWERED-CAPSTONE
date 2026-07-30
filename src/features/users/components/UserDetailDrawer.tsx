@@ -6,7 +6,6 @@ import {
   MapPin, 
   Calendar, 
   Clock,
-  ExternalLink,
   ShieldCheck
 } from 'lucide-react';
 import type { User } from '../types/User';
