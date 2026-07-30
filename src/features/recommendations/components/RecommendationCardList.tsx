@@ -6,7 +6,8 @@ import {
   FaEllipsisV, 
   FaEye, 
   FaRegEdit, 
-  FaRegTrashAlt
+  FaRegTrashAlt,
+  FaShieldAlt
 } from "react-icons/fa";
 
 /* ── HELPER: SKELETON LOADING ── */
@@ -27,7 +28,26 @@ export default function RecommendationCards({ recommendation, onDelete, onView, 
     border: "#f1f5f9",
     bgSoft: "#f8fafc",
     pillActive: "#f0fdfa",
-    warning: "#f59e0b"
+    warning: "#f59e0b",
+    danger: "#ef4444"
+  };
+
+  /**
+   * SEVERITY STYLING LOGIC
+   * Maps clinical severity to specific brand colors
+   */
+  const getSeverityStyles = (severity: string) => {
+    const s = severity?.toLowerCase();
+    switch (s) {
+      case 'severe': 
+        return { bg: '#fff1f2', text: '#e11d48', border: '#ffe4e6', label: 'Severe' };
+      case 'moderate': 
+        return { bg: '#fffbeb', text: '#d97706', border: '#fef3c7', label: 'Moderate' };
+      case 'mild': 
+        return { bg: '#f0fdf4', text: '#16a34a', border: '#dcfce7', label: 'Mild' };
+      default: 
+        return { bg: '#f8fafc', text: '#64748b', border: '#f1f5f9', label: severity || 'General' };
+    }
   };
 
   const formatDuration = (dateString: string) => {
@@ -149,6 +169,7 @@ export default function RecommendationCards({ recommendation, onDelete, onView, 
       <div style={uiStyles.grid}>
         {(recommendation || []).map((rec: any) => {
           const duration = formatDuration(rec.usage_duration);
+          const sevStyle = getSeverityStyles(rec.severity);
 
           return (
             <div key={rec.id} className="dash-card-wrapper" style={uiStyles.card}>
@@ -159,8 +180,21 @@ export default function RecommendationCards({ recommendation, onDelete, onView, 
                   </div>
                   <div>
                     <h3 style={{...uiStyles.cardHeading, color: colors.textDark}}>{rec.condition?.name || "Standard Care"}</h3>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '6px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                        <span style={uiStyles.subtext}>ID: #{rec.id.toString().padStart(4, '0')}</span>
+                       
+                       {/* NEW: SEVERITY INDICATOR */}
+                       {rec.severity && (
+                        <div className="status-pill" style={{ 
+                          background: sevStyle.bg, 
+                          color: sevStyle.text, 
+                          border: `1px solid ${sevStyle.border}` 
+                        }}>
+                          <FaShieldAlt size={8} />
+                          {sevStyle.label}
+                        </div>
+                       )}
+
                        {duration && (
                          <div className="status-pill" style={{ 
                             background: duration.status === 'past' ? '#fff1f2' : colors.pillActive, 

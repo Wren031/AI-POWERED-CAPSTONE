@@ -1,8 +1,11 @@
+
+
 // import { supabase } from "../../../lib/supabase";
+// import type { LifestyleTip } from "../../lifestyle/types/Lifestyle";
+// import type { Products } from "../../products/types/Products";
 // import type { Recommendation } from "../types/Recommendation";
 
 // export const recommendationService = {
-
 //   // =========================
 //   // 📥 GET ALL
 //   // =========================
@@ -15,71 +18,47 @@
 //         treatment,
 //         precautions,
 //         created_at,
-
-//         tbl_condition (
-//           id,
-//           name,
-//           created_at
-//         ),
-
+//         tbl_condition (id, name, created_at),
 //         tbl_recommendation_products (
-//           tbl_products (
-//             id,
-//             product_name,
-//             type,
-//             price,
-//             image_url,
-//             instructions,
-//             usage
-//           )
+//           tbl_products (id, product_name, type, price, image_url, instructions, usage)
 //         ),
-
 //         tbl_recommendation_lifestyle_tips (
-//           tbl_lifestyle_tips (
-//             id,
-//             category,
-//             title,
-//             description
-//           )
+//           tbl_lifestyle_tips (id, category, title, description)
 //         )
 //       `);
 
 //     if (error) throw error;
 //     if (!data) return [];
 
-//     return data.map((rec: any) => ({
-//       id: rec.id,
-//       severity: rec.severity,
-//       treatment: rec.treatment,
-//       precautions: rec.precautions,
-//       createdAt: rec.created_at,
-//       usage_duration: rec.usage_duration,
-      
-//       condition: {
-//         id: rec.tbl_condition?.id,
-//         name: rec.tbl_condition?.name,
-//         created_at: rec.tbl_condition?.created_at,
-//       },
+// // ... inside getAll() mapping
+// return data.map((rec: any) => {
+//   // 🛡️ Deduplicate and cast to Products[]
+//   const rawProducts = rec.tbl_recommendation_products?.map((rp: any) => rp.tbl_products) || [];
+//   const uniqueProducts: Products[] = Array.from(
+//     new Map(rawProducts.filter(Boolean).map((p: any) => [p.id, p])).values()
+//   ) as Products[]; // Explicitly tell TS these are Products
 
-//       products:
-//         rec.tbl_recommendation_products?.map((rp: any) => ({
-//           id: rp.tbl_products.id,
-//           product_name: rp.tbl_products.product_name,
-//           type: rp.tbl_products.type,
-//           price: rp.tbl_products.price,
-//           image_url: rp.tbl_products.image_url,
-//           instructions: rp.tbl_products.instructions,
-//           usage: rp.tbl_products.usage,
-//         })) || [],
+//   // 🛡️ Deduplicate and cast to LifestyleTip[]
+//   const rawTips = rec.tbl_recommendation_lifestyle_tips?.map((lt: any) => lt.tbl_lifestyle_tips) || [];
+//   const uniqueTips: LifestyleTip[] = Array.from(
+//     new Map(rawTips.filter(Boolean).map((t: any) => [t.id, t])).values()
+//   ) as LifestyleTip[]; // Explicitly tell TS these are LifestyleTips
 
-//       lifestyleTips:
-//         rec.tbl_recommendation_lifestyle_tips?.map((lt: any) => ({
-//           id: lt.tbl_lifestyle_tips.id,
-//           category: lt.tbl_lifestyle_tips.category,
-//           title: lt.tbl_lifestyle_tips.title,
-//           description: lt.tbl_lifestyle_tips.description,
-//         })) || [],
-//     }));
+//   return {
+//     id: rec.id,
+//     severity: rec.severity,
+//     treatment: rec.treatment,
+//     precautions: rec.precautions,
+//     createdAt: rec.created_at,
+//     condition: {
+//       id: rec.tbl_condition?.id,
+//       name: rec.tbl_condition?.name,
+//       created_at: rec.tbl_condition?.created_at,
+//     },
+//     products: uniqueProducts,
+//     lifestyleTips: uniqueTips,
+//   };
+// });
 //   },
 
 //   // =========================
@@ -93,7 +72,6 @@
 //         severity: rec.severity,
 //         treatment: rec.treatment,
 //         precautions: rec.precautions,
-//         usage_duration: 
 //       })
 //       .select()
 //       .single();
@@ -102,9 +80,11 @@
 
 //     // 🧴 PRODUCTS
 //     if (rec.products?.length) {
-//       const productLinks = rec.products.map((p) => ({
+//       // 🛡️ Fix: Ensure we only insert unique IDs
+//       const uniqueProductIds = [...new Set(rec.products.map(p => p.id))];
+//       const productLinks = uniqueProductIds.map((id) => ({
 //         recommendation_id: data.id,
-//         product_id: p.id,
+//         product_id: id,
 //       }));
 
 //       const { error: productError } = await supabase
@@ -114,11 +94,13 @@
 //       if (productError) throw productError;
 //     }
 
-//     // 🌿 LIFESTYLE TIPS (FIXED)
+//     // 🌿 LIFESTYLE TIPS
 //     if (rec.lifestyleTips?.length) {
-//       const tipLinks = rec.lifestyleTips.map((t) => ({
+//       // 🛡️ Fix: Ensure we only insert unique IDs
+//       const uniqueTipIds = [...new Set(rec.lifestyleTips.map(t => t.id))];
+//       const tipLinks = uniqueTipIds.map((id) => ({
 //         recommendation_id: data.id,
-//         lifestyle_tip_id: t.id,
+//         lifestyle_tip_id: id,
 //       }));
 
 //       const { error: lifestyleError } = await supabase
@@ -128,128 +110,90 @@
 //       if (lifestyleError) throw lifestyleError;
 //     }
 
-//     return {
-//       ...rec,
-//       id: data.id,
-//       createdAt: data.created_at,
-//     };
+//     return { ...rec, id: data.id, createdAt: data.created_at };
 //   },
 
 //   // =========================
 //   // 🔄 UPDATE
 //   // =========================
-//   async update(rec: Recommendation): Promise<Recommendation> {
+// // recommendationService.ts -> update method
 
-//     const { error } = await supabase
-//       .from("tbl_recommendations")
-//       .update({
-//         condition_id: rec.condition.id,
-//         severity: rec.severity,
-//         treatment: rec.treatment,
-//         precautions: rec.precautions,
-//       })
-//       .eq("id", rec.id);
+// async update(rec: Recommendation): Promise<Recommendation> {
+//   if (!rec.id) throw new Error("Missing Recommendation ID for update");
 
-//     if (error) throw error;
+//   // 1. Update the main table
+//   const { error: mainError } = await supabase
+//     .from("tbl_recommendations")
+//     .update({
+//       condition_id: rec.condition.id,
+//       severity: rec.severity,
+//       treatment: rec.treatment,
+//       precautions: rec.precautions,
+//     })
+//     .eq("id", rec.id);
 
-//     // 🧴 PRODUCTS SYNC
-//     await supabase
-//       .from("tbl_recommendation_products")
-//       .delete()
-//       .eq("recommendation_id", rec.id);
+//   if (mainError) throw mainError;
 
-//     if (rec.products?.length) {
-//       const productLinks = rec.products.map((p) => ({
-//         recommendation_id: rec.id,
-//         product_id: p.id,
-//       }));
+//   // 2. Sync Products: Clean old links, then add NEW unique links
+//   await supabase.from("tbl_recommendation_products").delete().eq("recommendation_id", rec.id);
 
-//       const { error: productError } = await supabase
-//         .from("tbl_recommendation_products")
-//         .insert(productLinks);
+//   if (rec.products?.length) {
+//     // Deduplicate IDs to prevent DB errors
+//     const uniqueProductIds = Array.from(new Set(rec.products.map(p => p.id)));
+//     const productLinks = uniqueProductIds.map(pid => ({
+//       recommendation_id: rec.id,
+//       product_id: pid
+//     }));
 
-//       if (productError) throw productError;
-//     }
+//     const { error: pErr } = await supabase.from("tbl_recommendation_products").insert(productLinks);
+//     if (pErr) throw pErr;
+//   }
 
-//     // 🌿 LIFESTYLE TIPS SYNC (FIXED)
-//     await supabase
-//       .from("tbl_recommendation_lifestyle_tips")
-//       .delete()
-//       .eq("recommendation_id", rec.id);
+//   // 3. Sync Tips: Clean old links, then add NEW unique links
+//   await supabase.from("tbl_recommendation_lifestyle_tips").delete().eq("recommendation_id", rec.id);
 
-//     if (rec.lifestyleTips?.length) {
-//       const tipLinks = rec.lifestyleTips.map((t) => ({
-//         recommendation_id: rec.id,
-//         lifestyle_tip_id: t.id,
-//       }));
+//   if (rec.lifestyleTips?.length) {
+//     const uniqueTipIds = Array.from(new Set(rec.lifestyleTips.map(t => t.id)));
+//     const tipLinks = uniqueTipIds.map(tid => ({
+//       recommendation_id: rec.id,
+//       lifestyle_tip_id: tid
+//     }));
 
-//       const { error: lifestyleError } = await supabase
-//         .from("tbl_recommendation_lifestyle_tips")
-//         .insert(tipLinks);
+//     const { error: tErr } = await supabase.from("tbl_recommendation_lifestyle_tips").insert(tipLinks);
+//     if (tErr) throw tErr;
+//   }
 
-//       if (lifestyleError) throw lifestyleError;
-//     }
+//   return rec;
+// },
 
-//     return rec;
-//   },
-
-//   // =========================
-//   // ❌ DELETE
-//   // =========================
+//   // ... (delete stays the same)
 //   async delete(id: number): Promise<void> {
 //     const { error } = await supabase
 //       .from("tbl_recommendations")
 //       .delete()
 //       .eq("id", id);
-
 //     if (error) throw error;
 //   },
 // };
 
-
 import { supabase } from "../../../lib/supabase";
+import type { LifestyleTip } from "../../lifestyle/types/Lifestyle";
+import type { Products } from "../../products/types/Products";
 import type { Recommendation } from "../types/Recommendation";
 
 export const recommendationService = {
 
-  // =========================
-  // 📥 GET ALL
-  // =========================
   async getAll(): Promise<Recommendation[]> {
     const { data, error } = await supabase
       .from("tbl_recommendations")
       .select(`
-        id,
-        severity,
-        treatment,
-        precautions,
-        created_at,
-
-        tbl_condition (
-          id,
-          name,
-          created_at
-        ),
-
+        id, severity, treatment, precautions, created_at,
+        tbl_condition (id, name, created_at),
         tbl_recommendation_products (
-          tbl_products (
-            id,
-            product_name,
-            type,
-            price,
-            image_url,
-            instructions,
-            usage
-          )
+          tbl_products (id, product_name, type, price, image_url, instructions, usage)
         ),
-
         tbl_recommendation_lifestyle_tips (
-          tbl_lifestyle_tips (
-            id,
-            category,
-            title,
-            description
-          )
+          tbl_lifestyle_tips (id, category, title, description)
         )
       `);
 
@@ -262,37 +206,20 @@ export const recommendationService = {
       treatment: rec.treatment,
       precautions: rec.precautions,
       createdAt: rec.created_at,
-      
-      condition: {
-        id: rec.tbl_condition?.id,
-        name: rec.tbl_condition?.name,
-        created_at: rec.tbl_condition?.created_at,
-      },
-
-      products:
-        rec.tbl_recommendation_products?.map((rp: any) => ({
-          id: rp.tbl_products.id,
-          product_name: rp.tbl_products.product_name,
-          type: rp.tbl_products.type,
-          price: rp.tbl_products.price,
-          image_url: rp.tbl_products.image_url,
-          instructions: rp.tbl_products.instructions,
-          usage: rp.tbl_products.usage,
-        })) || [],
-
-      lifestyleTips:
-        rec.tbl_recommendation_lifestyle_tips?.map((lt: any) => ({
-          id: lt.tbl_lifestyle_tips.id,
-          category: lt.tbl_lifestyle_tips.category,
-          title: lt.tbl_lifestyle_tips.title,
-          description: lt.tbl_lifestyle_tips.description,
-        })) || [],
+      condition: rec.tbl_condition,
+      products: Array.from(new Map(
+        (rec.tbl_recommendation_products?.map((rp: any) => rp.tbl_products) || [])
+          .filter(Boolean)
+          .map((p: any) => [p.id, p])
+      ).values()) as Products[],
+      lifestyleTips: Array.from(new Map(
+        (rec.tbl_recommendation_lifestyle_tips?.map((lt: any) => lt.tbl_lifestyle_tips) || [])
+          .filter(Boolean)
+          .map((t: any) => [t.id, t])
+      ).values()) as LifestyleTip[],
     }));
   },
 
-  // =========================
-  // ➕ CREATE
-  // =========================
   async create(rec: Recommendation): Promise<Recommendation> {
     const { data, error } = await supabase
       .from("tbl_recommendations")
@@ -307,46 +234,42 @@ export const recommendationService = {
 
     if (error) throw error;
 
-    // 🧴 PRODUCTS
     if (rec.products?.length) {
-      const productLinks = rec.products.map((p) => ({
-        recommendation_id: data.id,
-        product_id: p.id,
-      }));
-
-      const { error: productError } = await supabase
+      const uniqueProductIds = [...new Set(rec.products.map(p => p.id))];
+      const { error: pErr } = await supabase
         .from("tbl_recommendation_products")
-        .insert(productLinks);
-
-      if (productError) throw productError;
+        .insert(uniqueProductIds.map(pid => ({
+          recommendation_id: data.id,
+          product_id: pid,
+        })));
+      if (pErr) throw pErr;
     }
 
-    // 🌿 LIFESTYLE TIPS
     if (rec.lifestyleTips?.length) {
-      const tipLinks = rec.lifestyleTips.map((t) => ({
-        recommendation_id: data.id,
-        lifestyle_tip_id: t.id,
-      }));
-
-      const { error: lifestyleError } = await supabase
+      const uniqueTipIds = [...new Set(rec.lifestyleTips.map(t => t.id))];
+      const { error: tErr } = await supabase
         .from("tbl_recommendation_lifestyle_tips")
-        .insert(tipLinks);
-
-      if (lifestyleError) throw lifestyleError;
+        .insert(uniqueTipIds.map(tid => ({
+          recommendation_id: data.id,
+          lifestyle_tip_id: tid,
+        })));
+      if (tErr) throw tErr;
     }
 
-    return {
-      ...rec,
-      id: data.id,
-      createdAt: data.created_at,
-    };
+    return { ...rec, id: data.id, createdAt: data.created_at };
   },
 
-  // =========================
-  // 🔄 UPDATE
-  // =========================
   async update(rec: Recommendation): Promise<Recommendation> {
-    const { error } = await supabase
+    // Guard: ID must exist and be a valid number
+    if (!rec.id || typeof rec.id !== "number") {
+      throw new Error(`Update requires a valid numeric ID. Got: ${rec.id}`);
+    }
+
+    // Capture as a concrete number so TS and Supabase never see undefined
+    const id: number = rec.id;
+
+    // 1. Update main record
+    const { error: mainError } = await supabase
       .from("tbl_recommendations")
       .update({
         condition_id: rec.condition.id,
@@ -354,60 +277,56 @@ export const recommendationService = {
         treatment: rec.treatment,
         precautions: rec.precautions,
       })
-      .eq("id", rec.id);
+      .eq("id", id);
 
-    if (error) throw error;
+    if (mainError) throw mainError;
 
-    // 🧴 PRODUCTS SYNC
-    await supabase
+    // 2. Sync products — always delete then re-insert what remains
+    const { error: delProductErr } = await supabase
       .from("tbl_recommendation_products")
       .delete()
-      .eq("recommendation_id", rec.id);
+      .eq("recommendation_id", id);
 
-    if (rec.products?.length) {
-      const productLinks = rec.products.map((p) => ({
-        recommendation_id: rec.id,
-        product_id: p.id,
-      }));
+    if (delProductErr) throw delProductErr;
 
-      const { error: productError } = await supabase
+    if (rec.products && rec.products.length > 0) {
+      const uniqueProductIds = [...new Set(rec.products.map(p => p.id))];
+      const { error: insProductErr } = await supabase
         .from("tbl_recommendation_products")
-        .insert(productLinks);
-
-      if (productError) throw productError;
+        .insert(uniqueProductIds.map(pid => ({
+          recommendation_id: id,
+          product_id: pid,
+        })));
+      if (insProductErr) throw insProductErr;
     }
 
-    // 🌿 LIFESTYLE TIPS SYNC
-    await supabase
+    // 3. Sync lifestyle tips — always delete then re-insert what remains
+    const { error: delTipErr } = await supabase
       .from("tbl_recommendation_lifestyle_tips")
       .delete()
-      .eq("recommendation_id", rec.id);
+      .eq("recommendation_id", id);
 
-    if (rec.lifestyleTips?.length) {
-      const tipLinks = rec.lifestyleTips.map((t) => ({
-        recommendation_id: rec.id,
-        lifestyle_tip_id: t.id,
-      }));
+    if (delTipErr) throw delTipErr;
 
-      const { error: lifestyleError } = await supabase
+    if (rec.lifestyleTips && rec.lifestyleTips.length > 0) {
+      const uniqueTipIds = [...new Set(rec.lifestyleTips.map(t => t.id))];
+      const { error: insTipErr } = await supabase
         .from("tbl_recommendation_lifestyle_tips")
-        .insert(tipLinks);
-
-      if (lifestyleError) throw lifestyleError;
+        .insert(uniqueTipIds.map(tid => ({
+          recommendation_id: id,
+          lifestyle_tip_id: tid,
+        })));
+      if (insTipErr) throw insTipErr;
     }
 
     return rec;
   },
 
-  // =========================
-  // ❌ DELETE
-  // =========================
   async delete(id: number): Promise<void> {
     const { error } = await supabase
       .from("tbl_recommendations")
       .delete()
       .eq("id", id);
-
     if (error) throw error;
   },
 };

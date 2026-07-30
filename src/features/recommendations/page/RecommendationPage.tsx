@@ -212,22 +212,25 @@ export default function RecommendationPage() {
         )}
       </div>
 
-      {showAdd && (
-        <AddRecommendations 
-          initialData={selected} 
-          isSaving={isSaving} 
-          onAdd={async (newRec) => { 
-            if (selected) {
-              await handleUpdate(newRec);
-            } else {
-              await handleAdd(newRec);
-            }
-            setShowAdd(false);
-          }} 
-          onCancel={() => { setShowAdd(false); setSelected(null); }} 
-        />
-      )}
-
+{showAdd && (
+  <AddRecommendations
+    initialData={selected}
+    isSaving={isSaving}
+    onAdd={async (newRec) => {
+      if (newRec.id) {
+        await handleUpdate(newRec);  // has id = edit
+      } else {
+        await handleAdd(newRec);     // no id = create
+      }
+      setShowAdd(false);
+      setSelected(null);
+    }}
+    onCancel={() => {
+      setShowAdd(false);
+      setSelected(null);
+    }}
+  />
+)}
       <ViewRecommendationDrawer isOpen={isViewOpen} onClose={() => setIsViewOpen(false)} data={viewData} />
       
       {showDelete && (

@@ -24,14 +24,15 @@ import UserScanPage from "../features/scan/screen/UserScanPage";
 
 // Lifestyle (New Feature)
 import LifestylePage from "../features/lifestyle/page/LifestylePage";
+import LandingPage from "../features/landing/screen/LandingPage";
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         {/* --- Public Routes --- */}
-        {/* <Route path="/" element={<LandingPage />} /> */}
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
 
         {/* --- Admin Protected Routes --- */}
         <Route path="/admin" element={<DashboardLayout />}>

@@ -7,14 +7,14 @@ export default function useRecommendations() {
   const [data, setData] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false); 
+  const [isSaving, setIsSaving] = useState(false);
   const [selected, setSelected] = useState<Recommendation | null>(null);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const result = await recommendationService.getAll();
-      await delay(500); 
+      await delay(500);
       setData(result);
     } catch (error) {
       console.error("Fetch error:", error);
@@ -31,11 +31,11 @@ export default function useRecommendations() {
     try {
       setIsSaving(true);
       await recommendationService.create(newRec);
-      await delay(800); 
+      await delay(500);
       await fetchData();
     } catch (error) {
       console.error("Add error:", error);
-      throw error; 
+      throw error;
     } finally {
       setIsSaving(false);
     }
@@ -45,7 +45,7 @@ export default function useRecommendations() {
     try {
       setIsSaving(true);
       await recommendationService.update(updatedRec);
-      await delay(800); 
+      await delay(500);
       await fetchData();
       setSelected(null);
     } catch (error) {

@@ -18,9 +18,6 @@ import {
   ChevronRight,
   Menu,
   X,
-  Download,
-  Apple,
-  Star,
 } from "lucide-react";
 
 import captureMockup from "../../../assets/images/settings.jpg";
@@ -99,7 +96,6 @@ bgAlt: "#f8fafc",
   bgDark: "#060d1a",
   white: "#ffffff",
   accent: "#38bdf8",
-  gold: "#f59e0b",
 };
 
 export default function LandingPage() {
@@ -108,7 +104,6 @@ export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   const [screen, setScreen] = useState({
     mobile: window.innerWidth < 768,
@@ -150,58 +145,6 @@ export default function LandingPage() {
 
   return (
     <div style={s.root}>
-      {/* DOWNLOAD MODAL */}
-      {showDownloadModal && (
-        <div style={s.modalOverlay} onClick={() => setShowDownloadModal(false)}>
-          <div style={s.modal} onClick={(e) => e.stopPropagation()}>
-            <button style={s.modalClose} onClick={() => setShowDownloadModal(false)}>
-              <X size={18} />
-            </button>
-            <div style={s.modalLogo}>
-              <div style={s.logoMark}>
-                <ShieldCheck size={18} color="#fff" />
-              </div>
-              <span style={{ ...s.logoText, fontSize: "20px" }}>
-                Derma<span style={{ color: C.sky }}>AI</span>
-              </span>
-            </div>
-            <h3 style={s.modalTitle}>Download the App</h3>
-            <p style={s.modalSub}>Clinical-grade skin analysis in your pocket. Free to download.</p>
-            <div style={s.modalRating}>
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} size={14} fill={C.gold} color={C.gold} />
-              ))}
-              <span style={{ color: C.slate, fontSize: "13px", marginLeft: "6px" }}>
-                4.9 · 12,400 reviews
-              </span>
-            </div>
-            <div style={s.modalBtns}>
-              <a href="#" style={s.storeBtn}>
-                <Apple size={20} />
-                <div>
-                  <span style={s.storeBtnSub}>Download on the</span>
-                  <span style={s.storeBtnMain}>App Store</span>
-                </div>
-              </a>
-              <a href="#" style={{ ...s.storeBtn, background: "#1a1a2e" }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                  <path d="M3.18 23.76c.3.17.64.24.98.2l.14-.08L15.34 12 4.3.12l-.14-.08a1.42 1.42 0 0 0-.98.2C2.8.62 2.6 1.2 2.6 1.8v20.4c0 .6.2 1.18.58 1.56z" />
-                  <path d="M19.4 9.4 16.8 7.9 13.56 12l3.24 4.1 2.6-1.5a2.04 2.04 0 0 0 0-3.52 2.04 2.04 0 0 0-.3-.2c.1.04.2.06.3.1z" />
-                  <path d="M4.3.12 15.56 11.3l1.24-1.4L5.56.12A2.16 2.16 0 0 0 4.3.12z" />
-                  <path d="M4.3 23.88l1.26-.08 11.24-9.78-1.24-1.4L4.3 23.88z" />
-                </svg>
-                <div>
-                  <span style={s.storeBtnSub}>Get it on</span>
-                  <span style={s.storeBtnMain}>Google Play</span>
-                </div>
-              </a>
-            </div>
-            <p style={s.modalNote}>
-              <ShieldCheck size={12} color={C.sky} /> HIPAA Compliant · SOC 2 · FDA Registered
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* NAVBAR */}
       <nav
@@ -242,17 +185,8 @@ export default function LandingPage() {
 
           {!screen.mobile ? (
             <div style={s.navActions}>
-              <button style={s.navSignIn} onClick={() => navigate("/login")}>
+              <button style={s.navCta} onClick={() => navigate("/login")}>
                 Sign in
-              </button>
-              <button style={s.navCta} 
-              
-              onClick={() => setShowDownloadModal(true)
-//  onClick={() => navigate("/login")
-
-              }>
-                <Download size={14} />
-                Download App
               </button>
             </div>
           ) : (
@@ -269,10 +203,6 @@ export default function LandingPage() {
                 {item}
               </button>
             ))}
-            <button style={{ ...s.navCta, width: "100%", justifyContent: "center" }} onClick={() => setShowDownloadModal(true)}>
-              <Download size={14} />
-              Download App
-            </button>
           </div>
         )}
       </nav>
@@ -314,11 +244,7 @@ export default function LandingPage() {
             </p>
 
             <div style={{ ...s.heroCtas, justifyContent: screen.mobile ? "center" : "flex-start" }}>
-              <button style={s.heroPrimary} onClick={() => setShowDownloadModal(true)}>
-                <Download size={16} />
-                Download Free App
-              </button>
-              <button style={s.heroSecondary} onClick={() => scrollTo("Workflow")}>
+              <button style={s.heroPrimary} onClick={() => scrollTo("Workflow")}>
                 See how it works
                 <ChevronRight size={16} />
               </button>
@@ -440,10 +366,6 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-              <button style={{ ...s.heroPrimary, marginTop: "32px" }} onClick={() => setShowDownloadModal(true)}>
-                <Download size={15} />
-                Download the App
-              </button>
             </div>
 
             <div style={s.aboutRight}>
@@ -494,33 +416,6 @@ export default function LandingPage() {
             ))}
           </div>
 
-          {/* App Download CTA Banner */}
-          <div style={s.ctaBanner}>
-            <div style={s.ctaBannerGlow} />
-            <div style={{ position: "relative", zIndex: 1 }}>
-              <p style={s.ctaBannerEye}>Ready to get started?</p>
-              <h3 style={s.ctaBannerTitle}>Download DermaAI — Free</h3>
-              <p style={s.ctaBannerSub}>
-                Available on iOS and Android. No subscription required for your first assessment.
-              </p>
-              <div style={s.ctaBannerBtns}>
-                <button style={s.ctaStoreBtnDark} onClick={() => setShowDownloadModal(true)}>
-                  <Apple size={18} />
-                  <div style={{ textAlign: "left" }}>
-                    <div style={{ fontSize: "10px", opacity: 0.7, lineHeight: 1 }}>Download on the</div>
-                    <div style={{ fontWeight: 700, fontSize: "15px" }}>App Store</div>
-                  </div>
-                </button>
-                <button style={{ ...s.ctaStoreBtnDark, background: "rgba(255,255,255,0.12)" }} onClick={() => setShowDownloadModal(true)}>
-                  <Download size={18} />
-                  <div style={{ textAlign: "left" }}>
-                    <div style={{ fontSize: "10px", opacity: 0.7, lineHeight: 1 }}>Get it on</div>
-                    <div style={{ fontWeight: 700, fontSize: "15px" }}>Google Play</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -607,104 +502,6 @@ const s: Record<string, React.CSSProperties> = {
     overflowX: "hidden",
     background: "#fff",
     color: C.navy,
-  },
-
-  // ── MODAL ──────────────────────────────────
-  modalOverlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(6,13,26,0.8)",
-    backdropFilter: "blur(8px)",
-    zIndex: 9999,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "20px",
-  },
-  modal: {
-    background: "#fff",
-    borderRadius: "24px",
-    padding: "40px",
-    maxWidth: "420px",
-    width: "100%",
-    position: "relative",
-    boxShadow: "0 40px 100px rgba(0,0,0,0.3)",
-    textAlign: "center",
-  },
-  modalClose: {
-    position: "absolute",
-    top: "16px",
-    right: "16px",
-    border: "none",
-    background: "#f1f5f9",
-    borderRadius: "8px",
-    width: "34px",
-    height: "34px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    color: C.slate,
-  },
-  modalLogo: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "10px",
-    marginBottom: "20px",
-  },
-  modalTitle: {
-    fontSize: "24px",
-    fontWeight: 800,
-    color: C.navy,
-    margin: "0 0 8px",
-  },
-  modalSub: {
-    color: C.slate,
-    fontSize: "14px",
-    lineHeight: 1.6,
-    margin: "0 0 16px",
-  },
-  modalRating: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: "24px",
-  },
-  modalBtns: {
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "10px",
-    marginBottom: "16px",
-  },
-  storeBtn: {
-    display: "flex",
-    alignItems: "center",
-    gap: "14px",
-    padding: "14px 20px",
-    background: C.navy,
-    color: "#fff",
-    borderRadius: "14px",
-    textDecoration: "none",
-  },
-  storeBtnSub: {
-    display: "block",
-    fontSize: "10px",
-    opacity: 0.7,
-    lineHeight: 1,
-  },
-  storeBtnMain: {
-    display: "block",
-    fontSize: "16px",
-    fontWeight: 700,
-  },
-  modalNote: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "5px",
-    fontSize: "12px",
-    color: C.slateLight,
   },
 
   // ── NAVBAR ──────────────────────────────────
@@ -1253,63 +1050,6 @@ const s: Record<string, React.CSSProperties> = {
     color: C.slate,
     lineHeight: 1.7,
     fontSize: "14px",
-  },
-
-  // CTA banner
-  ctaBanner: {
-    borderRadius: "24px",
-    background: "linear-gradient(135deg,#0a1628,#112240)",
-    padding: "60px 48px",
-    textAlign: "center" as const,
-    position: "relative",
-    overflow: "hidden",
-  },
-  ctaBannerGlow: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%,-50%)",
-    width: "500px",
-    height: "200px",
-    background: "radial-gradient(ellipse, rgba(14,165,233,0.2) 0%, transparent 70%)",
-    pointerEvents: "none",
-  },
-  ctaBannerEye: {
-    color: C.sky,
-    fontWeight: 700,
-    fontSize: "12px",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.12em",
-    marginBottom: "12px",
-  },
-  ctaBannerTitle: {
-    fontSize: "32px",
-    fontWeight: 800,
-    color: "#fff",
-    margin: "0 0 12px",
-    letterSpacing: "-0.03em",
-  },
-  ctaBannerSub: {
-    color: C.slateLight,
-    fontSize: "15px",
-    marginBottom: "32px",
-  },
-  ctaBannerBtns: {
-    display: "flex",
-    gap: "12px",
-    justifyContent: "center",
-    flexWrap: "wrap" as const,
-  },
-  ctaStoreBtnDark: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "14px 24px",
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: "14px",
-    color: "#fff",
-    cursor: "pointer",
   },
 
   // contact

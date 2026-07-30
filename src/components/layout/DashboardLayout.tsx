@@ -137,7 +137,7 @@ const layoutStyles: Record<string, CSSProperties> = {
     display: "flex", 
     height: "100vh", 
     overflow: "hidden", 
-    backgroundColor: "#fcfcfd", 
+    backgroundColor: "#ffffff", 
   },
   overlay: {
     position: "fixed",

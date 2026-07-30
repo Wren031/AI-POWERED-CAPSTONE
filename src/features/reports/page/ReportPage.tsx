@@ -257,7 +257,7 @@ function StatCard({ icon, label, value, trend, color, iconBg }: any) {
 }
 
 const styles: Record<string, CSSProperties> = {
-  container: { padding: "40px", backgroundColor: "transparent", minHeight: "100vh", fontFamily: "system-ui, -apple-system, sans-serif" },
+  container: { padding: "40px", backgroundColor: "white", minHeight: "100vh", fontFamily: "system-ui, -apple-system, sans-serif" },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' },
   title: { fontSize: '28px', fontWeight: 800, color: COLORS.textMain, margin: 0 },
   subtitle: { fontSize: '14px', color: COLORS.textMuted, marginTop: '4px' },

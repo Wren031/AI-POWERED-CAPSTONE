@@ -11,7 +11,6 @@ import UsersTable from "../components/UsersTable";
 import UserDetailDrawer from "../components/UserDetailDrawer";
 import type { CSSProperties } from "react";
 
-// --- TYPES ---
 interface StatCardProps {
   title: string;
   value: number;
